@@ -66,5 +66,26 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- ── Pulse Music: iOS Audio Permissions ─────────────────────────────── -->
+
+	<!-- Allows audio to keep playing when app is backgrounded (lock screen, home screen) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+
+	<!-- Required by Apple when accessing the music framework -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Pulse needs access to play music for you.</string>
+
+	<!-- Required for AirPods / Bluetooth headphone routing -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Pulse uses Bluetooth to route audio to your wireless headphones.</string>
+
+	<!-- Microphone permission — needed by audio_session for proper routing -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Pulse needs microphone access to configure audio routing.</string>
+
 </dict>
 </plist>

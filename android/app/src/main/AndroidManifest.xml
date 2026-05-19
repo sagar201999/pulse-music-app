@@ -1,4 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. Internet: fetch songs from Render API + stream audio from Cloudinary -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 2. Network State: detect connection loss, show "No Internet" instead of crashing -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- 3. Wake Lock: keeps processor awake so music doesn't stop mid-song -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- 4. Foreground Service: base permission for background tasks -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- 5. CRITICAL for Android 14+: tells OS this is a media player, prevents battery kill -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!-- 6. Notifications: show play/pause/skip on lock screen & notification drawer -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 7. Bluetooth: audio routing for wireless headphones / earbuds -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <application
         android:label="pulse"
         android:name="${applicationName}"
