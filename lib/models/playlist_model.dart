@@ -46,7 +46,7 @@ class Playlist {
       id: json['_id'] ?? '',
       name: json['name'] ?? 'Untitled Playlist',
       description: json['description'] ?? '',
-      thumbnailUrl: json['thumbnailUrl'] ?? 'https://res.cloudinary.com/pulse-music-app/image/upload/v1/default_playlist.png',
+      thumbnailUrl: json['thumbnailUrl'] ?? '',
       isAdminPlaylist: json['isAdminPlaylist'] ?? false,
       createdBy: json['createdBy']?.toString(),
       songs: parsedSongs,

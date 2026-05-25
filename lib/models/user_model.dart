@@ -5,6 +5,7 @@ class User {
   final String email;
   final String? profileImage;
   final String gender;
+  final List<String> likedSongIds;
 
   User({
     required this.id,
@@ -12,6 +13,7 @@ class User {
     required this.email,
     this.profileImage,
     required this.gender,
+    this.likedSongIds = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,12 @@ class User {
       email: json['email'] ?? '',
       profileImage: json['profileImage'],
       gender: json['gender'] ?? 'Prefer not to say',
+      likedSongIds: json['likedSongs'] != null 
+          ? List<String>.from(json['likedSongs'].map((x) {
+              if (x is Map) return x['_id'] ?? x['id'] ?? '';
+              return x.toString();
+            }))
+          : [],
     );
   }
 
@@ -31,6 +39,7 @@ class User {
       'email': email,
       'profileImage': profileImage,
       'gender': gender,
+      'likedSongs': likedSongIds,
     };
   }
 }

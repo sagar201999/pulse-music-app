@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/mini_player.dart';
 import 'home/home_screen.dart';
 import 'search/search_screen.dart';
 import 'library/library_screen.dart';
-import 'create/create_screen.dart';
+import 'profile/profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -20,7 +21,7 @@ class _MainNavigationState extends State<MainNavigation> {
     HomeScreen(),
     SearchScreen(),
     LibraryScreen(),
-    CreateScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -51,24 +52,24 @@ class _MainNavigationState extends State<MainNavigation> {
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
+              icon: Icon(CupertinoIcons.house),
+              activeIcon: Icon(CupertinoIcons.house_fill),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
+              icon: Icon(CupertinoIcons.search),
+              activeIcon: Icon(CupertinoIcons.search),
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.library_music_outlined),
-              activeIcon: Icon(Icons.library_music),
+              icon: Icon(CupertinoIcons.music_note_list),
+              activeIcon: Icon(CupertinoIcons.music_note_list),
               label: 'Your Library',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.add_box_outlined),
-              activeIcon: Icon(Icons.add_box),
-              label: 'Create',
+              icon: Icon(CupertinoIcons.person),
+              activeIcon: Icon(CupertinoIcons.person_fill),
+              label: 'Profile',
             ),
           ],
         ),

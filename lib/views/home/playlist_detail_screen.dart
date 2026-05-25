@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/playlist_model.dart';
@@ -6,6 +7,7 @@ import '../../models/song_model.dart';
 import '../../models/album_model.dart';
 import '../../services/audio_service.dart';
 import '../player/player_screen.dart';
+import '../../widgets/song_list_tile.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final Playlist? playlist;
@@ -33,8 +35,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       ? (widget.playlist!.isAdminPlaylist ? 'Global Playlist' : 'Private Playlist')
       : 'Album • ${widget.album?.artist ?? ''}';
   IconData get typeIcon => widget.playlist != null
-      ? (widget.playlist!.isAdminPlaylist ? Icons.public : Icons.person)
-      : Icons.album;
+      ? (widget.playlist!.isAdminPlaylist ? CupertinoIcons.globe : CupertinoIcons.person)
+      : CupertinoIcons.music_albums;
 
   void _playAll() {
     final sList = songs;
@@ -172,7 +174,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                   FloatingActionButton(
                     onPressed: _playAll,
                     backgroundColor: AppColors.primary,
-                    child: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 36),
+                    child: const Icon(CupertinoIcons.play_fill, color: Colors.black, size: 30),
                   ),
                 ],
               ),
@@ -184,65 +186,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final song = sList[index];
-                return InkWell(
+                return SongListTile(
+                  song: song,
+                  playlist: sList,
                   onTap: () => _playSong(song),
-                  splashColor: AppColors.textPrimary.withOpacity(0.06),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Row(
-                      children: [
-                        // Track Number
-                        SizedBox(
-                          width: 30,
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
-                          ),
-                        ),
-                        // Thumbnail
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: CachedNetworkImage(
-                            imageUrl: song.thumbnailUrl,
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        // Title/Artist
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                song.title,
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                song.artist,
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Options
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  ),
                 );
               },
               childCount: sList.length,

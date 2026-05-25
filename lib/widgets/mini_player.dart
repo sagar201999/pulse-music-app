@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../core/constants/app_colors.dart';
@@ -84,7 +85,7 @@ class MiniPlayer extends StatelessWidget {
                         Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 24),
+                              icon: const Icon(CupertinoIcons.backward_end_fill, color: Colors.white, size: 22),
                               onPressed: () => audioService.skipPrevious(),
                             ),
                             StreamBuilder<PlayerState>(
@@ -93,7 +94,7 @@ class MiniPlayer extends StatelessWidget {
                                 final isPlaying = stateSnapshot.data?.playing ?? false;
                                 return IconButton(
                                   icon: Icon(
-                                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                    isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
                                     color: Colors.white,
                                     size: 30,
                                   ),
@@ -108,7 +109,7 @@ class MiniPlayer extends StatelessWidget {
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 24),
+                              icon: const Icon(CupertinoIcons.forward_end_fill, color: Colors.white, size: 22),
                               onPressed: () => audioService.skipNext(),
                             ),
                           ],

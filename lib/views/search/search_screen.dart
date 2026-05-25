@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/constants/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../models/category_model.dart';
 import '../../services/api_service.dart';
 import '../../services/audio_service.dart';
 import '../player/player_screen.dart';
+import '../../widgets/song_list_tile.dart';
 
 // ── Search Screen ──────────────────────────────────────────────────────────────
 class SearchScreen extends StatefulWidget {
@@ -129,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   children: [
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 22),
+                      child: Icon(CupertinoIcons.search, color: AppColors.textSecondary, size: 20),
                     ),
                     Expanded(
                       child: TextField(
@@ -152,7 +154,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         onTap: _clearSearch,
                         child: const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 14),
-                          child: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 20),
+                          child: Icon(CupertinoIcons.xmark_circle_fill, color: AppColors.textSecondary, size: 20),
                         ),
                       ),
                   ],
@@ -194,7 +196,15 @@ class _SearchScreenState extends State<SearchScreen> {
           child: ListView.builder(
             padding: const EdgeInsets.only(bottom: 100),
             itemCount: _results.length,
-            itemBuilder: (ctx, i) => _SearchSongTile(song: _results[i], playlist: _results),
+            itemBuilder: (ctx, i) => SongListTile(
+              song: _results[i],
+              playlist: _results,
+              onTap: () {
+                AudioPlayerService().loadAndPlay(_results[i], playlist: _results);
+                Navigator.push(ctx, MaterialPageRoute(
+                    builder: (_) => PlayerScreen(song: _results[i], playlist: _results)));
+              },
+            ),
           ),
         ),
       ],
@@ -262,7 +272,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         itemCount: 6,
-        itemBuilder: (_, __) => Padding(
+        itemBuilder: (_, _) => Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Row(
             children: [
@@ -300,7 +310,7 @@ class _SearchScreenState extends State<SearchScreen> {
             crossAxisSpacing: 12,
             childAspectRatio: 2.5,
           ),
-          itemBuilder: (_, __) => Container(
+          itemBuilder: (_, _) => Container(
             decoration: BoxDecoration(
               color: AppColors.cardColor,
               borderRadius: BorderRadius.circular(10),
@@ -316,7 +326,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off_rounded, color: AppColors.secondary, size: 64),
+          const Icon(CupertinoIcons.search, color: AppColors.secondary, size: 64),
           const SizedBox(height: 16),
           const Text('No results found',
               style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -397,7 +407,7 @@ class _CategoryCard extends StatelessWidget {
                             width: 68,
                             height: 68,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => _fallbackIcon(),
+                            errorWidget: (_, _, _) => _fallbackIcon(),
                           )
                         : _fallbackIcon(),
                   ),
@@ -415,7 +425,7 @@ class _CategoryCard extends StatelessWidget {
       width: 68,
       height: 68,
       color: Colors.black26,
-      child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 30),
+      child: const Icon(CupertinoIcons.music_note, color: Colors.white54, size: 30),
     );
   }
 }
@@ -446,11 +456,11 @@ class _SearchSongTile extends StatelessWidget {
                 imageUrl: song.thumbnailUrl,
                 width: 56, height: 56,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
+                placeholder: (_, _) => Container(
                   width: 56, height: 56, color: AppColors.cardColor,
                   child: const Icon(Icons.music_note, color: AppColors.secondary, size: 22),
                 ),
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (_, _, _) => Container(
                   width: 56, height: 56, color: AppColors.cardColor,
                   child: const Icon(Icons.music_note, color: AppColors.secondary, size: 22),
                 ),
@@ -505,7 +515,7 @@ class _SearchSongTile extends StatelessWidget {
             // Play icon
             const Padding(
               padding: EdgeInsets.only(left: 8),
-              child: Icon(Icons.play_circle_outline_rounded, color: AppColors.textSecondary, size: 24),
+              child: Icon(CupertinoIcons.play_circle, color: AppColors.textSecondary, size: 24),
             ),
           ],
         ),
@@ -561,7 +571,7 @@ class _CategorySongsScreenState extends State<CategorySongsScreen> {
             pinned: true,
             backgroundColor: darkCatColor,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+              icon: const Icon(CupertinoIcons.chevron_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -641,7 +651,15 @@ class _CategorySongsScreenState extends State<CategorySongsScreen> {
           if (!_loading && _error == null && _songs.isNotEmpty)
             SliverList(
               delegate: SliverChildBuilderDelegate(
-                (ctx, i) => _SearchSongTile(song: _songs[i], playlist: _songs),
+                (ctx, i) => SongListTile(
+                song: _songs[i],
+                playlist: _songs,
+                onTap: () {
+                  AudioPlayerService().loadAndPlay(_songs[i], playlist: _songs);
+                  Navigator.push(ctx, MaterialPageRoute(
+                      builder: (_) => PlayerScreen(song: _songs[i], playlist: _songs)));
+                },
+              ),
                 childCount: _songs.length,
               ),
             ),
@@ -661,7 +679,7 @@ class _CategorySongsScreenState extends State<CategorySongsScreen> {
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         itemCount: 6,
-        itemBuilder: (_, __) => Padding(
+        itemBuilder: (_, _) => Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Row(
             children: [
@@ -689,7 +707,7 @@ class _CategorySongsScreenState extends State<CategorySongsScreen> {
         padding: const EdgeInsets.all(40),
         child: Column(
           children: [
-            const Icon(Icons.error_outline_rounded, color: AppColors.secondary, size: 48),
+            const Icon(CupertinoIcons.wifi_exclamationmark, color: AppColors.secondary, size: 48),
             const SizedBox(height: 12),
             Text(_error!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 textAlign: TextAlign.center),
@@ -714,7 +732,7 @@ class _CategorySongsScreenState extends State<CategorySongsScreen> {
         padding: EdgeInsets.all(40),
         child: Column(
           children: [
-            Icon(Icons.music_off_rounded, color: AppColors.secondary, size: 52),
+            Icon(CupertinoIcons.music_note, color: AppColors.secondary, size: 52),
             SizedBox(height: 16),
             Text('No songs in this category',
                 style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),

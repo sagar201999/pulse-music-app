@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/constants/app_colors.dart';
@@ -13,6 +14,7 @@ import '../../models/playlist_model.dart';
 import '../../models/playlist_group_model.dart';
 import '../../models/album_model.dart';
 import 'playlist_detail_screen.dart';
+import '../../widgets/song_list_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -98,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
+                        child: const Icon(CupertinoIcons.play_fill, color: Colors.black, size: 18),
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -190,10 +192,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(height: 12),
                                 _buildSectionTitle('All Songs'),
                                 if (_songs.isEmpty) _buildEmpty(),
-                                ..._songs.asMap().entries.map((entry) => _SongTile(
-                                  song: entry.value, 
-                                  index: entry.key, 
-                                  playlist: _songs
+                                 ..._songs.asMap().entries.map((entry) => SongListTile(
+                                  song: entry.value,
+                                  playlist: _songs,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PlayerScreen(
+                                          song: entry.value, playlist: _songs),
+                                    ),
+                                  ),
                                 )),
                               ],
                             ),
@@ -241,12 +249,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: p.thumbnailUrl,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
+                    child: p.thumbnailUrl.isEmpty
+                        ? Container(
+                            width: 120,
+                            height: 120,
+                            color: AppColors.cardColor,
+                            child: const Icon(CupertinoIcons.folder_fill, color: AppColors.secondary, size: 38),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: p.thumbnailUrl,
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) => Container(
+                              width: 120,
+                              height: 120,
+                              color: AppColors.cardColor,
+                              child: const Icon(CupertinoIcons.folder_fill, color: AppColors.secondary, size: 38),
+                            ),
+                            errorWidget: (_, _, _) => Container(
+                              width: 120,
+                              height: 120,
+                              color: AppColors.cardColor,
+                              child: const Icon(Icons.folder, color: AppColors.secondary, size: 40),
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -333,17 +360,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 120,
                       height: 120,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
+                      placeholder: (_, _) => Container(
                         width: 120,
                         height: 120,
                         color: AppColors.cardColor,
-                        child: const Icon(Icons.music_note, color: AppColors.secondary),
+                        child: const Icon(CupertinoIcons.music_note, color: AppColors.secondary),
                       ),
-                      errorWidget: (_, __, ___) => Container(
+                      errorWidget: (_, _, _) => Container(
                         width: 120,
                         height: 120,
                         color: AppColors.cardColor,
-                        child: const Icon(Icons.music_note, color: AppColors.secondary),
+                        child: const Icon(CupertinoIcons.music_note, color: AppColors.secondary),
                       ),
                     ),
                   ),
@@ -467,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
             
             // Logout Button
             ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+              leading: const Icon(CupertinoIcons.square_arrow_right, color: Colors.redAccent),
               title: const Text('Logout', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
               onTap: () {
                 Navigator.pop(context);
@@ -518,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wifi_off_rounded, color: AppColors.secondary, size: 64),
+          const Icon(CupertinoIcons.wifi_slash, color: AppColors.secondary, size: 64),
           const SizedBox(height: 20),
           const Text(
             'You\'re offline',
@@ -553,7 +580,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.music_note_rounded, color: AppColors.textSecondary, size: 52),
+          Icon(CupertinoIcons.music_note, color: AppColors.textSecondary, size: 52),
           SizedBox(height: 16),
           Text('No songs yet',
               style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -566,102 +593,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Song Tile ──────────────────────────────────────────────────────────────────
-class _SongTile extends StatelessWidget {
-  final Song song;
-  final int index;
-  final List<Song> playlist;
-
-  const _SongTile({required this.song, required this.index, required this.playlist});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => PlayerScreen(song: song, playlist: playlist)),
-        );
-      },
-      splashColor: AppColors.textPrimary.withOpacity(0.06),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Row(
-          children: [
-            // Thumbnail
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: CachedNetworkImage(
-                imageUrl: song.thumbnailUrl,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => Container(
-                  width: 56, height: 56,
-                  color: AppColors.cardColor,
-                  child: const Icon(Icons.music_note, color: AppColors.secondary, size: 22),
-                ),
-                errorWidget: (_, _, _) => Container(
-                  width: 56, height: 56,
-                  color: AppColors.cardColor,
-                  child: const Icon(Icons.music_note, color: AppColors.secondary, size: 22),
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            // Title + Artist
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          song.title,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (song.isExplicit)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: const Text('E',
-                              style: TextStyle(color: AppColors.textPrimary, fontSize: 9, fontWeight: FontWeight.bold)),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    song.artist,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-
-            // Three dots
-            IconButton(
-              icon: const Icon(Icons.more_vert, color: AppColors.textSecondary, size: 20),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -12,6 +12,9 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
+  // In-memory cache for instantaneous UI checks
+  List<String> likedSongIds = [];
+
   /// Register a new user
   Future<Map<String, dynamic>> register({
     required String username,
@@ -75,10 +78,49 @@ class AuthService {
   }
 
   /// Persist token and user info
-  Future<void> _saveAuthData(String token, Map<String, dynamic> user) async {
+  Future<void> _saveAuthData(String token, Map<String, dynamic> userMap) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('jwt_token', token);
-    await prefs.setString('user_data', jsonEncode(user));
+    await prefs.setString('user_data', jsonEncode(userMap));
+    
+    final user = User.fromJson(userMap);
+    likedSongIds = List<String>.from(user.likedSongIds);
+  }
+
+  /// Load cache on app start
+  Future<void> loadCache() async {
+    final user = await getUser();
+    if (user != null) {
+      likedSongIds = List<String>.from(user.likedSongIds);
+    }
+  }
+
+  /// Instant UI Check
+  bool isLiked(String songId) => likedSongIds.contains(songId);
+
+  /// Toggle Like Optimistically
+  void toggleLikeLocal(String songId) {
+    if (likedSongIds.contains(songId)) {
+      likedSongIds.remove(songId);
+    } else {
+      likedSongIds.add(songId);
+    }
+    _persistLikedSongs();
+  }
+
+  /// Persist local liked songs state to SharedPreferences
+  Future<void> _persistLikedSongs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userData = prefs.getString('user_data');
+      if (userData != null) {
+        final userMap = jsonDecode(userData);
+        userMap['likedSongs'] = likedSongIds;
+        await prefs.setString('user_data', jsonEncode(userMap));
+      }
+    } catch (e) {
+      print('Failed to persist liked songs: $e');
+    }
   }
 
   /// Get stored user data
@@ -105,6 +147,10 @@ class AuthService {
   /// Check if user is logged in
   Future<bool> isLoggedIn() async {
     final token = await getToken();
-    return token != null && token.isNotEmpty;
+    if (token != null && token.isNotEmpty) {
+      await loadCache();
+      return true;
+    }
+    return false;
   }
 }

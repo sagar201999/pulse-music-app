@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/api_constants.dart';
 import '../core/services/auth_service.dart';
 import '../models/song_model.dart';
@@ -25,12 +26,33 @@ class ApiService {
     return {'Content-Type': 'application/json'};
   }
 
+  Future<http.Response> _getWithCache(String url, {Map<String, String>? headers}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString(url);
+    
+    // Fetch in the background to update cache for next time
+    http.get(Uri.parse(url), headers: headers).then((response) {
+      if (response.statusCode == 200) {
+        prefs.setString(url, response.body);
+      }
+    }).catchError((_) {});
+
+    if (cachedData != null) {
+      return http.Response(cachedData, 200);
+    } else {
+      // If no cache, wait for the fetch
+      final response = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        prefs.setString(url, response.body);
+      }
+      return response;
+    }
+  }
+
   // ── Songs ─────────────────────────────────────────────────────────────
   Future<List<Song>> getAllSongs({int limit = 50}) async {
     try {
-      final response = await http
-          .get(Uri.parse('$_base/songs?limit=$limit'))
-          .timeout(const Duration(seconds: 60));
+      final response = await _getWithCache('$_base/songs?limit=$limit');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -63,9 +85,7 @@ class ApiService {
 
   Future<List<Category>> getCategories() async {
     try {
-      final response = await http
-          .get(Uri.parse('$_base/categories'))
-          .timeout(const Duration(seconds: 15));
+      final response = await _getWithCache('$_base/categories');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List cats = data['categories'] ?? [];
@@ -104,11 +124,30 @@ class ApiService {
     }
   }
 
+  Future<bool> toggleLike(String songId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$_base/users/toggle-like'),
+        headers: headers,
+        body: jsonEncode({'songId': songId}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] ?? false;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ── Playlists ─────────────────────────────────────────────────────────
 
   Future<List<Playlist>> getPublicPlaylists() async {
     try {
-      final response = await http.get(Uri.parse('$_base/playlists/public')).timeout(const Duration(seconds: 15));
+      final response = await _getWithCache('$_base/playlists/public');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List playlists = data['playlists'] ?? [];
@@ -149,6 +188,21 @@ class ApiService {
     }
   }
 
+  Future<List<Song>> getLikedSongs() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('$_base/users/liked-songs'), headers: headers).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List songs = data['likedSongs'] ?? [];
+        return songs.map((s) => Song.fromJson(s)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Error fetching liked songs: $e');
+    }
+  }
+
   Future<bool> createUserPlaylist(String name, String description) async {
     try {
       final headers = await _getHeaders();
@@ -182,7 +236,7 @@ class ApiService {
   // ── Playlist Groups ───────────────────────────────────────────────────
   Future<List<PlaylistGroup>> getPlaylistGroups() async {
     try {
-      final response = await http.get(Uri.parse('$_base/playlist-groups')).timeout(const Duration(seconds: 15));
+      final response = await _getWithCache('$_base/playlist-groups');
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List groups = data['playlistGroups'] ?? [];

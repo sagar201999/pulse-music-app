@@ -1,5 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'dart:async';
+import 'dart:math';
 import '../models/song_model.dart';
 
 /// Singleton audio player — one instance for the entire app
@@ -21,6 +22,16 @@ class AudioPlayerService {
   // Stream to notify UI when the current song changes
   final _songController = StreamController<Song?>.broadcast();
   Stream<Song?> get currentSongStream => _songController.stream;
+
+  final _shuffleModeController = StreamController<bool>.broadcast();
+  Stream<bool> get shuffleModeStream => _shuffleModeController.stream;
+  bool _isShuffleModeEnabled = false;
+  bool get isShuffleModeEnabled => _isShuffleModeEnabled;
+
+  final _loopModeController = StreamController<bool>.broadcast();
+  Stream<bool> get loopModeStream => _loopModeController.stream;
+  bool _isLoopModeEnabled = false;
+  bool get isLoopModeEnabled => _isLoopModeEnabled;
 
   AudioPlayer get player => _player;
   Song? get currentSong => _currentIndex >= 0 && _currentIndex < _playlist.length ? _playlist[_currentIndex] : null;
@@ -57,7 +68,15 @@ class AudioPlayerService {
 
   Future<void> skipNext() async {
     if (_playlist.isEmpty) return;
-    final nextIndex = (_currentIndex + 1) % _playlist.length;
+    int nextIndex;
+    if (_isShuffleModeEnabled && _playlist.length > 1) {
+      nextIndex = Random().nextInt(_playlist.length);
+      if (nextIndex == _currentIndex) {
+        nextIndex = (nextIndex + 1) % _playlist.length;
+      }
+    } else {
+      nextIndex = (_currentIndex + 1) % _playlist.length;
+    }
     final nextSong = _playlist[nextIndex];
     await loadAndPlay(nextSong, playlist: _playlist);
   }
@@ -79,8 +98,21 @@ class AudioPlayerService {
 
   Future<void> seekTo(Duration position) => _player.seek(position);
 
+  Future<void> toggleShuffle() async {
+    _isShuffleModeEnabled = !_isShuffleModeEnabled;
+    _shuffleModeController.add(_isShuffleModeEnabled);
+  }
+
+  Future<void> toggleLoop() async {
+    _isLoopModeEnabled = !_isLoopModeEnabled;
+    _loopModeController.add(_isLoopModeEnabled);
+    await _player.setLoopMode(_isLoopModeEnabled ? LoopMode.one : LoopMode.off);
+  }
+
   Future<void> dispose() {
     _songController.close();
+    _shuffleModeController.close();
+    _loopModeController.close();
     return _player.dispose();
   }
 }
