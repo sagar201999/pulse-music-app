@@ -21,7 +21,9 @@ class User {
       id: json['_id'] ?? json['id'] ?? '',
       username: json['username'] ?? '',
       email: json['email'] ?? '',
-      profileImage: json['profileImage'],
+      profileImage: (json['profileImage'] != null && json['profileImage'].toString().contains('default_avatar.png')) 
+          ? null 
+          : json['profileImage'],
       gender: json['gender'] ?? 'Prefer not to say',
       likedSongIds: json['likedSongs'] != null 
           ? List<String>.from(json['likedSongs'].map((x) {

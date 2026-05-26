@@ -4,11 +4,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/song_model.dart';
-import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../../core/services/auth_service.dart';
 import '../player/player_screen.dart';
-import '../auth/get_started_screen.dart';
 import '../../services/audio_service.dart';
 import '../../models/playlist_model.dart';
 import '../../models/playlist_group_model.dart';
@@ -31,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Song> _trendingSongs = [];
   List<Playlist> _userPlaylists = [];
   List<PlaylistGroup> _playlistGroups = [];
-  User? _user;
   bool _loading = true;
   String? _error;
 
@@ -54,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ]);
       setState(() { 
         _songs = results[0] as List<Song>; 
-        _user = results[1] as User?;
         _publicPlaylists = results[2] as List<Playlist>;
         _trendingSongs = results[3] as List<Song>;
         _userPlaylists = results[4] as List<Playlist>;
@@ -65,17 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() { _error = e.toString(); _loading = false; });
     }
   }
-
-  void _handleLogout() async {
-    await _auth.logout();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const GetStartedScreen()),
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,31 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   
-                  // Profile Avatar
-                  GestureDetector(
-                    onTap: () {
-                      _showProfileMenu(context);
-                    },
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.orange, // Default avatar color
-                        shape: BoxShape.circle,
-                        image: (_user?.profileImage != null)
-                          ? DecorationImage(image: CachedNetworkImageProvider(_user!.profileImage!), fit: BoxFit.cover)
-                          : null,
-                      ),
-                      child: (_user?.profileImage == null)
-                        ? Center(
-                            child: Text(
-                              (_user?.username.isNotEmpty == true) ? _user!.username[0].toUpperCase() : 'U',
-                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          )
-                        : null,
-                    ),
-                  ),
+                  // Profile Avatar removed to avoid redundancy
+                  const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -443,67 +405,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  void _showProfileMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // User Info
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.orange,
-                  backgroundImage: _user?.profileImage != null 
-                    ? CachedNetworkImageProvider(_user!.profileImage!) 
-                    : null,
-                  child: _user?.profileImage == null 
-                    ? Text(_user?.username[0].toUpperCase() ?? 'U', style: const TextStyle(fontSize: 24, color: Colors.white))
-                    : null,
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _user?.username ?? 'Guest User',
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _user?.email ?? '',
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Divider(color: AppColors.dividerColor),
-            const SizedBox(height: 12),
-            
-            // Logout Button
-            ListTile(
-              leading: const Icon(CupertinoIcons.square_arrow_right, color: Colors.redAccent),
-              title: const Text('Logout', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(context);
-                _handleLogout();
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
       ),
     );
   }

@@ -231,7 +231,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                               ),
                             ),
                           ),
-                          // Heart / favourite button — frosted circle
+                          // Heart / favourite — frosted circle
                           _GlassIconButton(
                             icon: AuthService().isLiked(currentSong.id)
                                 ? CupertinoIcons.heart_fill
@@ -254,6 +254,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 }
                               });
                             },
+                          ),
+                          const SizedBox(width: 8),
+                          // Playlist / Add-to-playlist — frosted circle
+                          _GlassIconButton(
+                            icon: CupertinoIcons.music_note_list,
+                            onTap: () => _showAddToPlaylistSheet(context, currentSong),
                           ),
                         ],
                       ),
@@ -533,11 +539,23 @@ class _PlayerScreenState extends State<PlayerScreen>
                             onPressed: () => _audioService.skipNext(),
                           ),
 
-                          // Queue / Add to playlist
-                          IconButton(
-                            icon: const Icon(CupertinoIcons.music_note_list,
-                                color: AppColors.iconInactive, size: 22),
-                            onPressed: () => _showAddToPlaylistSheet(context, currentSong),
+                          // Loop
+                          StreamBuilder<bool>(
+                            stream: _audioService.loopModeStream,
+                            initialData: _audioService.isLoopModeEnabled,
+                            builder: (context, snapshot) {
+                              final isEnabled = snapshot.data ?? false;
+                              return IconButton(
+                                icon: Icon(
+                                  CupertinoIcons.repeat,
+                                  color: isEnabled
+                                      ? AppColors.primaryLight
+                                      : AppColors.iconInactive,
+                                  size: 22,
+                                ),
+                                onPressed: () => _audioService.toggleLoop(),
+                              );
+                            },
                           ),
                         ],
                       ),

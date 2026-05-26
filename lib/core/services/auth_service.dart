@@ -137,6 +137,50 @@ class AuthService {
     return prefs.getString('jwt_token');
   }
 
+  /// Update user profile
+  Future<Map<String, dynamic>> updateProfile({
+    String? username,
+    String? gender,
+    String? profileImage,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Not authenticated'};
+
+      final body = {};
+      if (username != null) body['username'] = username;
+      if (gender != null) body['gender'] = gender;
+      if (profileImage != null) body['profileImage'] = profileImage;
+
+      final response = await http.put(
+        Uri.parse(baseUrl.replaceFirst('/auth', '/users/profile')),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('Update Profile Status: ${response.statusCode}');
+      
+      try {
+        final data = jsonDecode(response.body);
+
+        if (response.statusCode == 200 && data['success'] == true) {
+          await _saveAuthData(token, data['user']);
+          return {'success': true, 'message': 'Profile updated successfully', 'user': data['user']};
+        } else {
+          return {'success': false, 'message': data['message'] ?? 'Update failed'};
+        }
+      } on FormatException {
+        return {'success': false, 'message': 'Server error: Invalid response format (${response.statusCode})'};
+      }
+    } catch (e) {
+      print('Auth Error (Update Profile): $e');
+      return {'success': false, 'message': 'Network error: Please check your connection'};
+    }
+  }
+
   /// Logout
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
